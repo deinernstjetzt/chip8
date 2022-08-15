@@ -21,6 +21,12 @@ C8Display* c8_display_new(void) {
     return g_object_new(C8_TYPE_DISPLAY, NULL);
 }
 
+void c8_display_clear(C8Display* self) {
+    for (int i = 0; i < 32; ++i) {
+        self->disp[i] = 0;
+    }
+}
+
 bool c8_display_get_pixel(C8Display* self, int x, int y) {
     g_assert(0 <= x && x < 64);
     g_assert(0 <= y && y < 32);

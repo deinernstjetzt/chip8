@@ -34,6 +34,7 @@ add_executable(
     src/appwindow.c src/appwindow.h
     src/display.c src/display.h
     src/keystate.c src/keystate.h
+    src/cpu.c src/cpu.h
     ${CMAKE_CURRENT_BINARY_DIR}/gresource.c
 )
 

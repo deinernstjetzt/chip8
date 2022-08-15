@@ -9,6 +9,8 @@ G_DECLARE_FINAL_TYPE(C8Display, c8_display, C8, DISPLAY, GObject)
 
 C8Display* c8_display_new(void);
 
+void c8_display_clear(C8Display* self);
+
 bool c8_display_get_pixel(C8Display* self, int x, int y);
 
 void c8_display_set_pixel(C8Display* self, int x, int y, bool value);
