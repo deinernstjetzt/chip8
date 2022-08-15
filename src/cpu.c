@@ -188,6 +188,7 @@ static void c8_cpu_exec(C8Cpu* self, C8CpuInst inst) {
 
     case 7: {
         self->regs[inst.x] += inst.nn;
+        break;
     }
 
     case 8: {
@@ -470,6 +471,6 @@ C8CpuStatus c8_cpu_status(C8Cpu* self) {
 }
 
 bool c8_cpu_ok(C8Cpu* self) {
-    return self->status == C8_CPU_STATUS_OK &&
+    return self->status == C8_CPU_STATUS_OK ||
            self->status == C8_CPU_STATUS_OK_BLOCKED;
 }

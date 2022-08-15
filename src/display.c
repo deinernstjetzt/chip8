@@ -1,5 +1,6 @@
 #include "display.h"
 
+#include <stdio.h>
 #include <stdint.h>
 
 struct _C8Display {
@@ -40,4 +41,21 @@ void c8_display_set_pixel(C8Display* self, int x, int y, bool value) {
 
     self->disp[y] &= ~((uint64_t)(1) << x);
     self->disp[y] |= (uint64_t)(value) << x;
+}
+
+void c8_display_screenshot(C8Display* self, const char* path) {
+    FILE* fp = fopen(path, "wb");
+    g_assert(fp != NULL);
+
+    fprintf(fp, "P1\n64 32\n");
+
+    for (int y = 0; y < 32; ++y) {
+        for (int x = 0; x < 64; ++x) {
+            fprintf(fp, "%d ", c8_display_get_pixel(self, x, y) ? 1 : 0);
+        }
+
+        fprintf(fp, "\n");
+    }
+
+    fclose(fp);
 }

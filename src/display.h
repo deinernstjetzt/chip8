@@ -15,4 +15,6 @@ bool c8_display_get_pixel(C8Display* self, int x, int y);
 
 void c8_display_set_pixel(C8Display* self, int x, int y, bool value);
 
+void c8_display_screenshot(C8Display* self, const char* path);
+
 #endif
