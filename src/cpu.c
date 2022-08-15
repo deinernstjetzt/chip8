@@ -30,6 +30,25 @@ typedef struct C8CpuInst {
 } C8CpuInst;
 
 static void c8_cpu_init(C8Cpu* self) {
+    static const uint8_t sprites[] = {
+        0xF0, 0x90, 0x90, 0x90, 0xF0,
+        0x20, 0x60, 0x20, 0x20, 0x70,
+        0xF0, 0x10, 0xF0, 0x80, 0xF0,
+        0xF0, 0x10, 0xF0, 0x10, 0xF0,
+        0x90, 0x90, 0xF0, 0x10, 0x10,
+        0xF0, 0x80, 0xF0, 0x10, 0xF0,
+        0xF0, 0x80, 0xF0, 0x90, 0xF0,
+        0xF0, 0x10, 0x20, 0x40, 0x40,
+        0xF0, 0x90, 0xF0, 0x90, 0xF0,
+        0xF0, 0x90, 0xF0, 0x10, 0xF0,
+        0xF0, 0x90, 0xF0, 0x90, 0x90,
+        0xE0, 0x90, 0xE0, 0x90, 0xE0,
+        0xF0, 0x80, 0x80, 0x80, 0xF0,
+        0xE0, 0x90, 0x90, 0x90, 0xE0,
+        0xF0, 0x80, 0xF0, 0x80, 0xF0,
+        0xF0, 0x80, 0xF0, 0x80, 0x80,
+    };
+
     self->display = NULL;
     self->keystate = NULL;
     self->status = C8_CPU_STATUS_OK;
@@ -37,6 +56,7 @@ static void c8_cpu_init(C8Cpu* self) {
     memset(self->mem, 0, sizeof(self->mem));
     memset(self->regs, 0, sizeof(self->regs));
     memset(self->stack, 0, sizeof(self->stack));
+    memcpy(self->mem, sprites, sizeof(sprites));
 
     self->pc = 0x200;
     self->ir = 0;
@@ -45,7 +65,18 @@ static void c8_cpu_init(C8Cpu* self) {
     self->st = 0;
 }
 
-static void c8_cpu_class_init(C8CpuClass* class) {}
+static void c8_cpu_dispose(GObject* self) {
+    C8Cpu* c = C8_CPU(self);
+
+    g_clear_object(&c->display);
+    g_clear_object(&c->keystate);
+
+    return G_OBJECT_CLASS(c8_cpu_parent_class)->dispose(self);
+}
+
+static void c8_cpu_class_init(C8CpuClass* class) {
+    G_OBJECT_CLASS(class)->dispose = c8_cpu_dispose;
+}
 
 static bool c8_cpu_ok(C8Cpu* self) {
     return self->status == C8_CPU_STATUS_OK &&
@@ -388,11 +419,18 @@ static void c8_cpu_exec(C8Cpu* self, C8CpuInst inst) {
     }
 }
 
-C8Cpu* c8_cpu_new(C8Display* disp, C8Keystate* keystate) {
+C8Cpu* c8_cpu_new(C8Display* disp, C8Keystate* keystate,
+                  size_t n, const uint8_t* rom) {
+    g_assert(n <= 4096 - 512);
+
     C8Cpu* self = g_object_new(C8_TYPE_CPU, NULL);
 
     self->display = disp;
     self->keystate = keystate;
+
+    for (size_t i = 0; i < n; ++i) {
+        self->mem[i + 512] = rom[i];
+    }
 
     return self;
 }
