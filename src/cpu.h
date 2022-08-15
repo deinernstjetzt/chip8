@@ -26,5 +26,6 @@ void c8_cpu_step_timers(C8Cpu* self);
 
 C8CpuStatus c8_cpu_status(C8Cpu* self);
 
+bool c8_cpu_ok(C8Cpu* self);
 
 #endif

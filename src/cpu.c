@@ -78,11 +78,6 @@ static void c8_cpu_class_init(C8CpuClass* class) {
     G_OBJECT_CLASS(class)->dispose = c8_cpu_dispose;
 }
 
-static bool c8_cpu_ok(C8Cpu* self) {
-    return self->status == C8_CPU_STATUS_OK &&
-           self->status == C8_CPU_STATUS_OK_BLOCKED;
-}
-
 static C8CpuInst c8_cpu_fetch(C8Cpu* self) {
     C8CpuInst res = {0};
 
@@ -472,4 +467,9 @@ void c8_cpu_step_timers(C8Cpu* self) {
 
 C8CpuStatus c8_cpu_status(C8Cpu* self) {
     return self->status;
+}
+
+bool c8_cpu_ok(C8Cpu* self) {
+    return self->status == C8_CPU_STATUS_OK &&
+           self->status == C8_CPU_STATUS_OK_BLOCKED;
 }

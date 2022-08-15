@@ -35,6 +35,7 @@ add_executable(
     src/display.c src/display.h
     src/keystate.c src/keystate.h
     src/cpu.c src/cpu.h
+    src/emu.c src/emu.h
     ${CMAKE_CURRENT_BINARY_DIR}/gresource.c
 )
 
