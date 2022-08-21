@@ -91,6 +91,8 @@ void c8_emu_start(C8Emu* self) {
 
 void c8_emu_stop(C8Emu* self) {
     g_clear_object(&self->cpu);
+    c8_display_clear(self->disp);
+    
     self->status = C8_EMU_STATUS_STOPPED;
 }
 

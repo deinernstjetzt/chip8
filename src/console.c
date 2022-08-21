@@ -64,13 +64,6 @@ static gboolean c8_console_on_key_released(GtkEventControllerKey* ek,
     return result;
 }
 
-static gboolean fuck_you_gtk(gpointer user_data) {
-    C8Console* self = C8_CONSOLE(user_data);
-    gtk_widget_grab_focus(GTK_WIDGET(self));
-
-    return G_SOURCE_CONTINUE;
-}
-
 static gboolean c8_console_on_legacy_event(GtkEventControllerLegacy* el,
                                            GdkEvent* event,
                                            gpointer user_data) {
@@ -84,24 +77,6 @@ static gboolean c8_console_on_legacy_event(GtkEventControllerLegacy* el,
     }
 
     return true;
-}
-
-static gboolean redraw_on_interval(void* user_data) {
-    GWeakRef* ref = user_data;
-    GObject* obj = g_weak_ref_get(ref);
-    gboolean res;
-
-    if (obj) {
-        C8Console* self = C8_CONSOLE(obj);
-        gtk_widget_queue_draw(GTK_WIDGET(self));
-
-        res = G_SOURCE_CONTINUE;
-    } else {
-        g_free(ref);
-        res = G_SOURCE_REMOVE;
-    }
-
-    return res;
 }
 
 static void c8_console_init(C8Console* self) {
@@ -123,10 +98,6 @@ static void c8_console_init(C8Console* self) {
     g_signal_connect(ek, "key-pressed", G_CALLBACK(c8_console_on_key_pressed), self);
     g_signal_connect(ek, "key-released", G_CALLBACK(c8_console_on_key_released), self);
     gtk_widget_add_controller(GTK_WIDGET(self), ek);
-
-    GWeakRef* ref = g_malloc(sizeof(*ref));
-    g_weak_ref_init(ref, self);
-    g_timeout_add(1000 / 60, redraw_on_interval, ref);
 }
 
 static void c8_console_dispose(GObject* self_obj) {
