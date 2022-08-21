@@ -113,20 +113,24 @@ static void c8_console_measure(GtkWidget* self_wid, GtkOrientation o,
                                int for_size, int* min, int* nat,
                                int* min_base, int* nat_base) {
     if (o == GTK_ORIENTATION_HORIZONTAL) {
+        int m = MAX(for_size / 32 * 32 * 2, 64);
+
         if (nat) {
-            *nat = for_size * 2;
+            *nat = MAX(for_size * 2, m);
         }
 
         if (min) {
-            *min = for_size / 32 * 32 * 2;
+            *min = m;
         }
     } else {
+        int m = MAX(for_size / 64 * 64 / 2, 32);
+
         if (nat) {
-            *nat = for_size / 2;
+            *nat = MAX(for_size / 2, m);
         }
 
         if (min) {
-            *min = for_size / 64 * 64 / 2;
+            *min = m;
         }
     }
 
@@ -145,6 +149,7 @@ static GtkSizeRequestMode c8_console_get_request_mode(GtkWidget* self_wid) {
 
 static void c8_console_snapshot(GtkWidget* self_wid, GtkSnapshot* snapshot) {
     C8Console* self = C8_CONSOLE(self_wid);
+    GtkStyleContext* style_ctx = gtk_widget_get_style_context(self_wid);
 
     int w = gtk_widget_get_width(self_wid);
     int h = gtk_widget_get_height(self_wid);
@@ -152,6 +157,12 @@ static void c8_console_snapshot(GtkWidget* self_wid, GtkSnapshot* snapshot) {
     int scale = MIN(w / 64, h / 32);
     int start_x = (w - scale * 64) / 2;
     int start_y = (h - scale * 32) / 2;
+
+    GdkRGBA fg;
+    GdkRGBA bg;
+
+    gtk_style_context_lookup_color(style_ctx, "window_bg_color", &bg);
+    gtk_style_context_lookup_color(style_ctx, "accent_color", &fg);
 
     for (int y = 0; y < 32; ++y) {
         for (int x = 0; x < 64; ++x) {
@@ -162,21 +173,15 @@ static void c8_console_snapshot(GtkWidget* self_wid, GtkSnapshot* snapshot) {
                 scale
             );
 
-            GdkRGBA color;
+            GdkRGBA* color;
 
             if (c8_display_get_pixel(self->disp, x, y)) {
-                color.alpha = 1.0f;
-                color.red = 1.0f;
-                color.green = 1.0f;
-                color.blue = 1.0f;
+                color = &fg;
             } else {
-                color.alpha = 1.0f;
-                color.red = 0.0f;
-                color.green = 0.0f;
-                color.blue = 0.0f;
+                color = &bg;
             }
 
-            gtk_snapshot_append_color(snapshot, &color, &rect);
+            gtk_snapshot_append_color(snapshot, color, &rect);
         }
     }
 }

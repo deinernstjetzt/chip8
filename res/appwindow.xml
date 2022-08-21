@@ -22,7 +22,6 @@
             </child>
             <child type="start">
               <object class="GtkBox">
-                <property name="sensitive">false</property>
                 <property name="css-classes">linked</property>
                 <child>
                   <object class="GtkButton" id="emu-start-pause-button">
@@ -31,6 +30,7 @@
                 </child>
                 <child>
                   <object class="GtkButton" id="emu-stop-button">
+                    <property name="sensitive">false</property>
                     <property name="icon-name">media-playback-stop</property>
                   </object>
                 </child>
