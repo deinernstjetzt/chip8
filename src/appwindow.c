@@ -44,6 +44,7 @@ static void c8_app_window_init(C8AppWindow* self) {
 
     g_signal_connect(self->open_rom, "clicked", G_CALLBACK(on_open_rom), self);
 
+    C8Keystate* keys = c8_keystate_new();
     C8Display* disp = c8_display_new();
 
     for (int x = 0; x < 32; ++x) {
@@ -52,7 +53,7 @@ static void c8_app_window_init(C8AppWindow* self) {
         }
     }
 
-    C8Console* con = c8_console_new(disp, NULL);
+    C8Console* con = c8_console_new(disp, keys);
     gtk_box_append(GTK_BOX(self->content_box), GTK_WIDGET(con));
 }
 

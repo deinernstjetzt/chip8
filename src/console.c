@@ -4,13 +4,129 @@ struct _C8Console {
     GtkWidget parent;
     C8Display* disp;
     C8Keystate* keys;
+    bool focused;
 };
 
 G_DEFINE_TYPE(C8Console, c8_console, GTK_TYPE_WIDGET)
 
+static const int c8_keymap[16][2] = {
+        {GDK_KEY_1, 1},
+        {GDK_KEY_2, 2},
+        {GDK_KEY_3, 3},
+        {GDK_KEY_4, 0xC},
+        {GDK_KEY_q, 4},
+        {GDK_KEY_w, 5},
+        {GDK_KEY_e, 6},
+        {GDK_KEY_r, 0xD},
+        {GDK_KEY_a, 7},
+        {GDK_KEY_s, 8},
+        {GDK_KEY_d, 9},
+        {GDK_KEY_f, 0xE},
+        {GDK_KEY_y, 0xA},
+        {GDK_KEY_x, 0},
+        {GDK_KEY_c, 0xB},
+        {GDK_KEY_v, 0xF},
+    };
+
+static gboolean c8_console_on_key_pressed(GtkEventControllerKey* ek,
+                                          guint keyval,
+                                          guint keycode,
+                                          GdkModifierType state,
+                                          gpointer user_data) {
+    C8Console* self = C8_CONSOLE(user_data);
+    bool result = false;
+    
+    for (int i = 0; i < 16 && !result; ++i) {
+        if (keyval == c8_keymap[i][0]) {
+            c8_keystate_press(self->keys, c8_keymap[i][1]);
+            result = true;
+        }
+    }
+
+    return result;
+}
+
+static gboolean c8_console_on_key_released(GtkEventControllerKey* ek,
+                                           guint keyval,
+                                           guint keycode,
+                                           GdkModifierType state,
+                                           gpointer user_data) {
+    C8Console* self = C8_CONSOLE(user_data);
+    bool result = false;
+    
+    for (int i = 0; i < 16 && !result; ++i) {
+        if (keyval == c8_keymap[i][0]) {
+            c8_keystate_release(self->keys, c8_keymap[i][1]);
+            result = true;
+        }
+    }
+
+    return result;
+}
+
+static gboolean fuck_you_gtk(gpointer user_data) {
+    C8Console* self = C8_CONSOLE(user_data);
+    gtk_widget_grab_focus(GTK_WIDGET(self));
+
+    return G_SOURCE_CONTINUE;
+}
+
+static gboolean c8_console_on_legacy_event(GtkEventControllerLegacy* el,
+                                           GdkEvent* event,
+                                           gpointer user_data) {
+    gboolean result = false;
+    
+    if (gdk_event_get_event_type(event) == GDK_BUTTON_PRESS) {
+        C8Console* self = C8_CONSOLE(user_data);
+        gtk_widget_grab_focus(GTK_WIDGET(self));
+
+        result = true;
+    }
+
+    return true;
+}
+
+static gboolean redraw_on_interval(void* user_data) {
+    GWeakRef* ref = user_data;
+    GObject* obj = g_weak_ref_get(ref);
+    gboolean res;
+
+    if (obj) {
+        C8Console* self = C8_CONSOLE(obj);
+        gtk_widget_queue_draw(GTK_WIDGET(self));
+
+        res = G_SOURCE_CONTINUE;
+    } else {
+        g_free(ref);
+        res = G_SOURCE_REMOVE;
+    }
+
+    return res;
+}
+
 static void c8_console_init(C8Console* self) {
     self->disp = NULL;
     self->keys = NULL;
+
+    gtk_widget_set_can_focus(GTK_WIDGET(self), true);
+    gtk_widget_set_focusable(GTK_WIDGET(self), true);
+    gtk_widget_set_focus_on_click(GTK_WIDGET(self), true);
+    gtk_widget_set_can_target(GTK_WIDGET(self), true);
+
+    GtkEventController* el = gtk_event_controller_legacy_new();
+
+    g_signal_connect(el, "event", G_CALLBACK(c8_console_on_legacy_event), self);
+    gtk_widget_add_controller(GTK_WIDGET(self), el);
+
+    GtkEventController* ek = gtk_event_controller_key_new();
+
+    g_signal_connect(ek, "key-pressed", G_CALLBACK(c8_console_on_key_pressed), self);
+    g_signal_connect(ek, "key-released", G_CALLBACK(c8_console_on_key_released), self);
+    gtk_widget_add_controller(GTK_WIDGET(self), ek);
+
+    GWeakRef* ref = g_malloc(sizeof(*ref));
+    g_weak_ref_init(ref, self);
+    g_timeout_add(1000 / 60, redraw_on_interval, ref);
 }
 
 static void c8_console_dispose(GObject* self_obj) {
