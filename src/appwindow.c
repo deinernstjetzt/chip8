@@ -1,10 +1,12 @@
 #include "appwindow.h"
+#include "console.h"
 
 struct _C8AppWindow {
     AdwApplicationWindow parent;
     GtkWidget* open_rom;
     GtkWidget* start_pause;
     GtkWidget* stop;
+    GtkWidget* content_box;
 };
 
 G_DEFINE_TYPE(C8AppWindow, c8_app_window, ADW_TYPE_APPLICATION_WINDOW)
@@ -41,6 +43,17 @@ static void c8_app_window_init(C8AppWindow* self) {
     gtk_widget_init_template(GTK_WIDGET(self));
 
     g_signal_connect(self->open_rom, "clicked", G_CALLBACK(on_open_rom), self);
+
+    C8Display* disp = c8_display_new();
+
+    for (int x = 0; x < 32; ++x) {
+        for (int y = 0; y < 32; ++y) {
+            c8_display_set_pixel(disp, x, y, true);
+        }
+    }
+
+    C8Console* con = c8_console_new(disp, NULL);
+    gtk_box_append(GTK_BOX(self->content_box), GTK_WIDGET(con));
 }
 
 static void c8_app_window_class_init(C8AppWindowClass* class) {
@@ -68,6 +81,13 @@ static void c8_app_window_class_init(C8AppWindowClass* class) {
         "emu-stop-button",
         true,
         G_STRUCT_OFFSET(C8AppWindow, stop)
+    );
+
+    gtk_widget_class_bind_template_child_full(
+        GTK_WIDGET_CLASS(class),
+        "content-box",
+        true,
+        G_STRUCT_OFFSET(C8AppWindow, content_box)
     );
 }
 
